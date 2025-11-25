@@ -1,0 +1,12 @@
+name: Python MCP
+version: 0.0.2
+schema: v1
+mcpServers:
+  - name: Python MCP
+    command: docker
+    args:
+      - run
+      - --rm
+      - -i
+      - python-mcp
+    env: {}

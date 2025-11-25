@@ -1,0 +1,4 @@
+ruff
+pyright
+bandit[toml]
+mcp

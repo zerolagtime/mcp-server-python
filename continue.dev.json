@@ -1,0 +1,11 @@
+{
+  "name": "Python MCP",
+  "run": {
+    "cmd": ["docker", "run", "--rm", "-i", "-v", "${workspaceFolder}:/workspace", "python-mcp"],
+    "stdin": true,
+    "stdout": true,
+    "stderr": true
+  },
+  "languages": ["python"],
+  "description": "Run python code, lint, type check and security scan in isolated Docker container."
+}
