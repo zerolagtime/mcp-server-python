@@ -8,5 +8,7 @@ mcpServers:
       - run
       - --rm
       - -i
+      - --network
+      - none
       - python-mcp
     env: {}
