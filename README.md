@@ -98,3 +98,49 @@ The tool handles cache isolation per session by creating temporary directories.
 ## License
 
 MIT
+
+## Sample `~/.continue/rules/python-rule.md`
+
+```md
+# Python Development Rules
+
+## Test-Driven Development
+- Write tests FIRST before implementation code
+- Use `list_installed_packages()` to check available testing frameworks (pytest recommended)
+- Run tests with `run_python()` to verify behavior before suggesting code
+- Aim for >80% code coverage on business logic
+
+## Code Quality & Validation
+- Always `check_python()` and `security_scan()` before presenting code
+- Use type hints for all function signatures (Python 3.11+)
+- Keep cyclomatic complexity ≤3 per function (max 3 decision points/branches)
+- Extract complex logic into well-named helper functions
+- Write Pythonic, idiomatic code when it improves clarity
+
+## SOLID Principles
+- **Single Responsibility**: One function = one clear purpose
+- **Open/Closed**: Use protocols/ABC for extensibility
+- **Liskov Substitution**: Subtypes must be substitutable
+- **Interface Segregation**: Small, focused interfaces over large ones
+- **Dependency Inversion**: Depend on abstractions (protocols), inject dependencies
+
+## Security & Configuration
+- Use `python-dotenv` for sensitive values, never hardcode secrets
+- Use stdlib `hashlib` and `secrets` for cryptography, avoid third-party crypto libs
+- Validate all external inputs with type hints + runtime validation (pydantic recommended)
+
+## Architecture Patterns
+- Separate concerns: handlers → services → repositories
+- Use dataclasses/pydantic models for data structures
+- Implement error handling at boundaries with custom exceptions
+- Document public APIs with docstrings (Google/NumPy style)
+- Prefer composition over inheritance
+
+## Workflow
+1. Query `list_installed_packages()` to verify available dependencies
+2. Write failing test
+3. Implement minimal code to pass test
+4. Run `check_python()` and `security_scan()`
+5. Refactor while keeping tests green
+6. Present validated, tested code
+```

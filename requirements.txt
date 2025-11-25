@@ -1,4 +1,16 @@
+# essential packages for the MCP
 ruff
 pyright
 bandit[toml]
 mcp
+
+# additional packages available for generated code
+numpy
+pydantic
+pydantic-settings
+django
+psycopg3
+requests
+pandas
+matplotlib
+scipy

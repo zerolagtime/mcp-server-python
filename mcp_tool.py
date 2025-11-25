@@ -21,7 +21,7 @@ def create_session_dir() -> str:
 @mcp.tool()
 async def run_python(code: str, filename: str = "script.py", ctx: Context = None) -> dict:
     """
-    Execute Python code in an isolated environment.
+    Execute Python code in an isolated environment with security restrictions.
     
     Args:
         code: The Python code to execute
@@ -34,19 +34,63 @@ async def run_python(code: str, filename: str = "script.py", ctx: Context = None
     session_dir = create_session_dir()
     file_path = os.path.join(session_dir, filename)
     
-    # Write code to file
-    Path(file_path).write_text(code)
+    # Wrap code with restricted execution environment
+    restricted_code = f'''
+import sys
+import builtins
+
+# Block dangerous imports
+BLOCKED_MODULES = {{
+    'urllib', 'urllib.request', 'urllib3', 'requests', 'http', 'httpx',
+    'socket', 'ftplib', 'telnetlib', 'smtplib', 'poplib', 'imaplib',
+    'subprocess', 'os.system', 'pty', 'commands',
+    'pickle', 'shelve', 'marshal',  # unsafe deserialization
+}}
+
+original_import = builtins.__import__
+
+def safe_import(name, *args, **kwargs):
+    base_module = name.split('.')[0]
+    if base_module in BLOCKED_MODULES:
+        raise ImportError(f"Import of '{{name}}' is blocked for security reasons")
+    return original_import(name, *args, **kwargs)
+
+builtins.__import__ = safe_import
+
+# Remove dangerous builtins
+for attr in ['eval', 'exec', 'compile', '__import__']:
+    if attr in dir(builtins) and attr != '__import__':
+        delattr(builtins, attr)
+
+# User code starts here
+{code}
+'''
+    
+    # Write wrapped code to file
+    Path(file_path).write_text(restricted_code)
     
     if ctx:
         ctx.debug(f"Running python file: {file_path}")
     
+    # Run with timeout to prevent infinite loops
     proc = await asyncio.create_subprocess_exec(
         "python3", file_path,
         cwd=session_dir,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE
     )
-    stdout, stderr = await proc.communicate()
+    
+    try:
+        stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=30.0)
+    except asyncio.TimeoutError:
+        proc.kill()
+        await proc.wait()
+        return {
+            "stdout": "",
+            "stderr": "Execution timeout (30 seconds exceeded)",
+            "returncode": -1,
+            "session_dir": session_dir
+        }
     
     return {
         "stdout": stdout.decode(),
@@ -184,6 +228,40 @@ async def security_scan(code: str, filename: str = "script.py", ctx: Context = N
         "bandit_returncode": proc.returncode,
         "session_dir": session_dir
     }
+
+
+@mcp.tool()
+async def list_installed_packages(ctx: Context = None) -> dict:
+    """
+    List all Python packages installed via pip.
+    
+    Returns:
+        dict with list of installed packages and their versions
+    """
+    proc = await asyncio.create_subprocess_exec(
+        "pip", "list", "--format", "json",
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE
+    )
+    stdout, stderr = await proc.communicate()
+    
+    try:
+        packages = json.loads(stdout.decode()) if stdout else []
+        # Format as a more readable dict
+        package_dict = {pkg["name"]: pkg["version"] for pkg in packages}
+        return {
+            "packages": package_dict,
+            "count": len(package_dict),
+            "stderr": stderr.decode(),
+            "returncode": proc.returncode
+        }
+    except json.JSONDecodeError:
+        return {
+            "packages": {},
+            "count": 0,
+            "stderr": stderr.decode() + "\nFailed to parse pip output",
+            "returncode": proc.returncode
+        }
 
 
 if __name__ == "__main__":
