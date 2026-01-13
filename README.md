@@ -92,9 +92,8 @@ The tool handles cache isolation per session by creating temporary directories.
 - Cache is cleared at the start of each session to prevent interference.
 - The tool relies on the following Python tools installed inside the container:
   - `ruff` for linting
-  - `ty` for type checking
   - `bandit` for security scanning
-
+- 
 ## License
 
 MIT

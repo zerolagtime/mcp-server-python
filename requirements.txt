@@ -9,7 +9,7 @@ numpy
 pydantic
 pydantic-settings
 django
-psycopg3
+psycopg >=3.2.13,<4
 requests
 pandas
 matplotlib
