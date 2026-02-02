@@ -6,6 +6,8 @@ from pathlib import Path
 
 from mcp.server.fastmcp import FastMCP, Context
 
+from .parse_args import parse_args
+
 mcp = FastMCP("Python MCP Server")
 
 # Shared session dir
@@ -263,9 +265,9 @@ async def list_installed_packages(ctx: Context = None) -> dict:
         }
 
 def main():
-    # Use stdio transport for Docker stdin/stdout communication
-    mcp.run(transport="streamable-http")  # Defaults to stdio transport
-
+    opts = parse_args(default_transport="stdio")
+    mcp.run(transport=opts["transport"])
+    
 if __name__ == "__main__":
     main()
 
