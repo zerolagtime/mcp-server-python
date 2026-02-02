@@ -6,13 +6,16 @@ if [ "$here" == "." ]; then
 fi
 me=$(basename "$0")
 
-for f in $here/git_hooks/*; do
-    if [ "$f" != "$here/$me" ]; then
-        target=$(basename "$f")
-        if [ ! -e .git/hooks/$target ]; then
-            echo "Installing hook: $f"
-        else
-            echo "Skipping hook: $f (already installed)"
+for f in $here/../git_hooks/*; do
+    if [ "$f" != "$(dirname "$f")/$me" ]; then
+        target="$here/../.git/hooks/$(basename "$f")"
+        if [ -f "$f" ]; then
+            if [ ! -e "$target" ]; then
+                echo "Installing hook: $f"
+                ln -s "$f" "$target"
+            else
+                echo "Skipping hook: $f (already installed)"
+            fi
         fi
     fi
 done
