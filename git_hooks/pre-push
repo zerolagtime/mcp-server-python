@@ -1,0 +1,31 @@
+#!/bin/sh
+set -e
+
+if ! command -v hatch >/dev/null; then
+    echo "Error: hatch is not available. Is the virtual environment missing dev tools? (e.g. pip install -e .[dev])"
+    exit 1
+fi
+if ! git diff --quiet || ! git diff --cached --quiet; then
+  echo "Error: Working tree is dirty. Refusing to publish."
+  exit 1
+fi
+
+# Detect newly pushed tags
+while read local_ref local_sha remote_ref remote_sha
+do
+  case "$local_ref" in
+    refs/tags/*)
+      TAG_NAME=$(basename "$local_ref")
+      echo "Detected tag: $TAG_NAME"
+
+      echo "Building..."
+      hatch build
+
+      echo "Publishing to PyPI..."
+      hatch publish
+
+      echo "Published $TAG_NAME"
+      ;;
+  esac
+done
+exit 0

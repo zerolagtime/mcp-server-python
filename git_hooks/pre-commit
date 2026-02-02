@@ -1,0 +1,14 @@
+#!/bin/sh
+set -e
+if ! command -v hatch >/dev/null; then
+    echo "Error: hatch is not available. Is the virtual environment missing dev tools? (e.g. pip install -e .[dev])"
+    exit 1
+fi
+# if ! git diff --quiet || ! git diff --cached --quiet; then
+#   echo "Error: Working tree is dirty. Refusing to build."
+#   exit 1
+# fi
+echo "Running build..."
+hatch build
+
+echo "Build OK"

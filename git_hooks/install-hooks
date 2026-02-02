@@ -1,0 +1,18 @@
+#!/bin/bash
+
+here=$(dirname "$0")
+if [ "$here" == "." ]; then
+   here=$PWD
+fi
+me=$(basename "$0")
+
+for f in $here/git_hooks/*; do
+    if [ "$f" != "$here/$me" ]; then
+        target=$(basename "$f")
+        if [ ! -e .git/hooks/$target ]; then
+            echo "Installing hook: $f"
+        else
+            echo "Skipping hook: $f (already installed)"
+        fi
+    fi
+done
