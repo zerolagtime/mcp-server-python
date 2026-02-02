@@ -1,6 +1,6 @@
-# Python MCP Tool
+# Trusted Python MCP Tool
 
-A Minimal Compute Platform (MCP) tool for **continue.dev** plugin in VSCode to run Python scripts, perform linting (using `ruff`), type checking (using `ty` from astral-sh), and security scanning (using `bandit`).
+A Minimal Compute Platform (MCP) tool for **continue.dev** plugin in VSCode to run Python scripts, perform linting (using `ruff`), type checking (using `ty` from astral-sh), and security scanning (using `bandit`). It should work just fine with other tools
 
 ## Features
 
@@ -11,98 +11,29 @@ A Minimal Compute Platform (MCP) tool for **continue.dev** plugin in VSCode to r
 - Uses isolated temporary directories for each session for cache and file management.
 - Runs entirely inside a Docker container to ensure sandboxing and prevent unauthorized filesystem access.
 
-## Requirements
+## Quickstart
 
-- Docker installed and running on your machine.
-- VSCode with the continue.dev extension.
+Install `uvx`. Administrative privileges are not required, but you will need to permanents add it to your path (e.g `~/.local/bin`)
 
-## Building the Docker Image
+Use as-is with `uvx mcp-trusted-python`. 
 
-To build the Docker image, run the following in your project root:
+If extra libraries should always be available to the agent, then put them in a requirements file (e.g `requirements-science.txt`). Then, substituting your preferred Python interpreter,
 
-```bash
-docker build -t python-mcp .
+```sh
+uvx create --python python3.11 mcp-trusted-python
+uvx shell mcp-trusted-python
+uv pip install mcp-trusted-python
+uv pip install -r requirements-science.txt
 ```
 
-Alternatively, you can use the VSCode task:
-
-1. Open the Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P` on Mac).
-2. Run `Tasks: Run Build Task`.
-3. Select `Build Python MCP Docker Image`.
-
-## Using in continue.dev
-
-The MCP tool is configured in `continue.dev.json`:
-
-```json
-{
-  "name": "Python MCP",
-  "run": {
-    "cmd": ["docker", "run", "--rm", "-i", "-v", "${workspaceFolder}:/workspace", "python-mcp"],
-    "stdin": true,
-    "stdout": true,
-    "stderr": true
-  },
-  "languages": ["python"],
-  "description": "Run python code, lint, type check and security scan in isolated Docker container."
-}
-```
-
-Make sure to build the Docker image first.
-
-## Using the MCP Tool
-
-The tool reads JSON requests on standard input and outputs JSON responses on standard output.
-
-Example request to run Python script:
-
-```json
-{
-  "action": "run_python",
-  "path": "script.py",
-  "content": "print('Hello world')\n"
-}
-```
-
-Example request to lint and type check:
-
-```json
-{
-  "action": "check_python",
-  "path": "script.py",
-  "content": "def foo(x: int) -> str:\n    return str(x)\n"
-}
-```
-
-Example request for security scan:
-
-```json
-{
-  "action": "security_scan",
-  "path": "script.py",
-  "content": "import os\nprint(os.listdir())\n"
-}
-```
-
-The tool handles cache isolation per session by creating temporary directories.
-
-## Notes
-
-- The container runs as a non-root user for safety.
-- Cache is cleared at the start of each session to prevent interference.
-- The tool relies on the following Python tools installed inside the container:
-  - `ruff` for linting
-  - `bandit` for security scanning
-- 
 ## License
 
 MIT
 
-## Sample `~/.continue/rules/python-rule.md`
+# Python Development Rules
+Add these to your tool's rules to include with `*.py` files. For continue.dev, these go in `~/.continue/rules/trusted-python-rules.md`. The rules
 
 ```md
-# Python Development Rules
-
 ## Test-Driven Development
 - Write tests FIRST before implementation code
 - Use `list_installed_packages()` to check available testing frameworks (pytest recommended)
@@ -127,6 +58,7 @@ MIT
 - Use `python-dotenv` for sensitive values, never hardcode secrets
 - Use stdlib `hashlib` and `secrets` for cryptography, avoid third-party crypto libs
 - Validate all external inputs with type hints + runtime validation (pydantic recommended)
+- Web applications always include CORS support and disable debugging at run time
 
 ## Architecture Patterns
 - Separate concerns: handlers → services → repositories

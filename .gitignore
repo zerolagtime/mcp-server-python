@@ -1,1 +1,7 @@
 *.pyc
+.python-version
+.continue
+.continue/*/*
+build
+*egg-info
+__pycache__

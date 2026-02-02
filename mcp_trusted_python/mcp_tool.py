@@ -132,10 +132,9 @@ async def check_python(code: str, filename: str = "script.py", ctx: Context = No
     except json.JSONDecodeError:
         ruff_json = []
 
-    # Run type check (using pyright since 'ty' might not exist)
-    # Note: 'ty' doesn't seem to be a standard tool, using pyright instead
+    # Run type check 
     type_proc = await asyncio.create_subprocess_exec(
-        "python3", "-m", "pyright", file_path,
+        "python3", "-m", "ty", file_path,
         cwd=session_dir,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,
@@ -263,7 +262,10 @@ async def list_installed_packages(ctx: Context = None) -> dict:
             "returncode": proc.returncode
         }
 
+def main():
+    # Use stdio transport for Docker stdin/stdout communication
+    mcp.run(transport="streamable-http")  # Defaults to stdio transport
 
 if __name__ == "__main__":
-    # Use stdio transport for Docker stdin/stdout communication
-    mcp.run()  # Defaults to stdio transport
+    main()
+

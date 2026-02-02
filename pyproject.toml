@@ -1,0 +1,31 @@
+[project]
+name = "mcp-trusted-python"
+version = "0.1.0"
+description = "Support Python development with checkers and a scoped interpreter"
+readme = "README.md"
+authors = [
+    {name = "Charlie Todd", email = "github@zerolagtime.link"},
+]
+license = {file = "LICENSE"}
+dependencies = [
+    "mcp",
+    "ruff",
+    "ty",
+    "bandit[toml]",
+    "pytest",
+    "python-dotenv",
+    "pydantic"
+]
+requires-python = ">=3.8"
+
+[project.urls]
+Homepage = "https://github.com/zerolagtime/mcp-trusted-python"
+Repository = "https://github.com/zerolagtime/mcp-trusted-python"
+Issues = "https://github.com/zerolagtime/mcp-trusted-python/issues"
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project.scripts]
+mcp-trusted-python = "mcp_trusted_python.mcp_tool:main"
