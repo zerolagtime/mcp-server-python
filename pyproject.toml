@@ -15,6 +15,7 @@ dependencies = [
     "bandit[toml]",
     "pytest",
     "pytest-asyncio",
+    "pytest-cov",
     "python-dotenv",
     "pydantic"
 ]

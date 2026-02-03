@@ -136,7 +136,7 @@ async def check_python(code: str, filename: str = "script.py", ctx: Context = No
 
     # Run type check 
     type_proc = await asyncio.create_subprocess_exec(
-        "python3", "-m", "ty", file_path,
+        "python3", "-m", "ty", "check", file_path,
         cwd=session_dir,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,
@@ -168,21 +168,22 @@ async def fix_python(code: str, filename: str = "script.py", ctx: Context = None
     """
     session_dir = create_session_dir()
     file_path = os.path.join(session_dir, filename)
-    
+
     # Write code to file
     Path(file_path).write_text(code)
 
+    # Run ruff with full fix and all lints
     proc = await asyncio.create_subprocess_exec(
-        "ruff", "check", "--fix", file_path,
+        "ruff", "check", "--fix", "--output-format=concise", "--select", "ALL", file_path,
         cwd=session_dir,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,
     )
     stdout, stderr = await proc.communicate()
-    
-    # Read the fixed code
+
+    # Read the (possibly) fixed code
     fixed_code = Path(file_path).read_text()
-    
+
     return {
         "fixed_code": fixed_code,
         "stdout": stdout.decode(),
@@ -191,46 +192,44 @@ async def fix_python(code: str, filename: str = "script.py", ctx: Context = None
         "session_dir": session_dir
     }
 
-
 @mcp.tool()
 async def security_scan(code: str, filename: str = "script.py", ctx: Context = None) -> dict:
     """
-    Run security scanning on Python code using bandit.
-    
+    Run security scanning on Python code using Ruff's Bandit security rules.
+
     Args:
         code: The Python code to scan
         filename: Name for the temporary file (default: script.py)
         ctx: MCP context for logging
-    
+
     Returns:
-        dict with bandit security scan results
+        dict with Ruff security scan results
     """
     session_dir = create_session_dir()
     file_path = os.path.join(session_dir, filename)
-    
+
     # Write code to file
     Path(file_path).write_text(code)
 
+    # Run Ruff with only security rules ("S" for Bandit-equivalent rules)
     proc = await asyncio.create_subprocess_exec(
-        "bandit", "-r", file_path, "-f", "json",
+        "ruff", "check", "--select", "S", "--output-format=json", file_path,
         cwd=session_dir,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,
     )
     out, err = await proc.communicate()
     try:
-        bandit_json = json.loads(out.decode()) if out else {}
+        ruff_security_json = json.loads(out.decode()) if out else []
     except json.JSONDecodeError:
-        bandit_json = {}
+        ruff_security_json = []
 
     return {
-        "security_issues": bandit_json,
-        "bandit_stderr": err.decode(),
-        "bandit_returncode": proc.returncode,
+        "security_issues": ruff_security_json,        # List of issues, each as dict
+        "ruff_stderr": err.decode(),
+        "ruff_returncode": proc.returncode,
         "session_dir": session_dir
     }
-
-
 @mcp.tool()
 async def list_installed_packages(ctx: Context = None) -> dict:
     """
@@ -267,7 +266,7 @@ async def list_installed_packages(ctx: Context = None) -> dict:
 def main():
     opts = parse_args(default_transport="stdio")
     mcp.run(transport=opts["transport"])
-    
+
 if __name__ == "__main__":
     main()
 
