@@ -85,7 +85,7 @@ for attr in ['eval', 'exec', 'compile', '__import__']:
     try:
         stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=30.0)
     except asyncio.TimeoutError:
-        proc.kill()
+        await proc.kill()
         await proc.wait()
         return {
             "stdout": "",
